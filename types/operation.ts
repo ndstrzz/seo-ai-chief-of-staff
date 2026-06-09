@@ -1,3 +1,5 @@
+export type OperationType = "seminar" | "playlist" | "travel" | "general";
+
 export type AgentStatus = "Complete" | "Running" | "Queued" | "Locked";
 
 export type OperationAgent = {
@@ -22,6 +24,15 @@ export type VenueRecommendation = {
   reason: string;
 };
 
+export type PlaylistRecommendation = {
+  name: string;
+  mood: string;
+  duration: string;
+  trackCount: string;
+  reason: string;
+  tracks: string[];
+};
+
 export type ResearchSource = {
   title: string;
   url: string;
@@ -36,9 +47,11 @@ export type ResearchBrief = {
 export type OperationPlan = {
   id: string;
   title: string;
+  type: OperationType;
   progress: number;
   agents: OperationAgent[];
   timeline: OperationTimelineItem[];
   venues: VenueRecommendation[];
+  playlists: PlaylistRecommendation[];
   researchBrief: ResearchBrief;
 };

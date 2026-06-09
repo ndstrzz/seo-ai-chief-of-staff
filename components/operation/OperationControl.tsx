@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import AgentNetwork from "@/components/agents/AgentNetwork";
 import SEOBackground from "@/components/background/SEOBackground";
+import PlaylistRecommendationCard from "@/components/cards/PlaylistRecommendationCard";
 import ResearchBriefCard from "@/components/cards/ResearchBriefCard";
 import VenueShortlist from "@/components/cards/VenueShortlist";
 import MoriMascot from "@/components/home/MoriMascot";
@@ -35,6 +36,11 @@ export default function OperationControl() {
   if (!plan) {
     return null;
   }
+
+  const actionLabel =
+    plan.type === "playlist"
+      ? "Spotify publishing requires approval"
+      : "Booking requires approval";
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-seo-paper text-seo-ink">
@@ -85,8 +91,8 @@ export default function OperationControl() {
                 </div>
 
                 <p className="text-sm leading-6 text-seo-muted">
-                  SEO can research and prepare autonomously, but booking venues,
-                  making payments, or accessing sensitive data requires explicit
+                  SEO can research and prepare autonomously, but publishing,
+                  booking, payments, or sensitive data access require explicit
                   approval.
                 </p>
               </div>
@@ -110,7 +116,7 @@ export default function OperationControl() {
 
                   <div className="flex items-center gap-2">
                     <LockKeyhole size={15} />
-                    Booking requires approval
+                    {actionLabel}
                   </div>
                 </div>
               </div>
@@ -123,7 +129,12 @@ export default function OperationControl() {
 
           <div className="grid gap-6 md:grid-cols-[0.9fr_1.1fr]">
             <AnimatedOperationTimeline items={plan.timeline} />
-            <VenueShortlist venues={plan.venues} />
+
+            {plan.type === "playlist" ? (
+              <PlaylistRecommendationCard playlists={plan.playlists} />
+            ) : (
+              <VenueShortlist venues={plan.venues} />
+            )}
           </div>
 
           <ResearchBriefCard brief={plan.researchBrief} />
