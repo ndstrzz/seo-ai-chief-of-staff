@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -29,15 +28,14 @@ export async function GET() {
     show_dialog: "true",
   });
 
-  // Clear any stale token so the callback always writes a fresh one
-  // with the full scopes granted in this authorization request.
-  const cookieStore = await cookies();
-  cookieStore.delete("spotify_access_token");
-  cookieStore.delete("spotify_refresh_token");
-
-  return NextResponse.redirect(
+  // Delete stale cookies on the redirect response itself —
+  // this is the only way Next.js actually clears them.
+  const response = NextResponse.redirect(
     `https://accounts.spotify.com/authorize?${params.toString()}`,
   );
-}
 
-//
+  response.cookies.delete("spotify_access_token");
+  response.cookies.delete("spotify_refresh_token");
+
+  return response;
+}

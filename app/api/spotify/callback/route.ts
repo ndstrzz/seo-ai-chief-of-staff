@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -14,11 +16,10 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
   if (!code) {
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}?spotify=failed`,
-    );
+    return NextResponse.redirect(`${appUrl}?spotify=failed`);
   }
 
   const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
@@ -37,24 +38,28 @@ export async function GET(request: Request) {
   });
 
   if (!tokenResponse.ok) {
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}?spotify=failed`,
-    );
+    const errorText = await tokenResponse.text();
+    console.error("Spotify token exchange failed:", tokenResponse.status, errorText);
+    return NextResponse.redirect(`${appUrl}?spotify=failed`);
   }
 
   const tokenData = (await tokenResponse.json()) as {
     access_token: string;
     refresh_token?: string;
     expires_in: number;
+    scope?: string;
   };
 
-  const response = NextResponse.redirect(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}?spotify=connected`,
-  );
+  // Log the granted scopes so you can verify in server logs
+  console.log("Spotify token granted scopes:", tokenData.scope);
+
+  const isProduction = process.env.NODE_ENV === "production";
+
+  const response = NextResponse.redirect(`${appUrl}?spotify=connected`);
 
   response.cookies.set("spotify_access_token", tokenData.access_token, {
     httpOnly: true,
-    secure: false,
+    secure: isProduction,
     sameSite: "lax",
     path: "/",
     maxAge: tokenData.expires_in,
@@ -63,7 +68,7 @@ export async function GET(request: Request) {
   if (tokenData.refresh_token) {
     response.cookies.set("spotify_refresh_token", tokenData.refresh_token, {
       httpOnly: true,
-      secure: false,
+      secure: isProduction,
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 30,
