@@ -7,9 +7,17 @@ import { VenueRecommendation } from "@/types/operation";
 
 type VenueShortlistProps = {
   venues: VenueRecommendation[];
+  onApprove: () => void;
 };
 
-export default function VenueShortlist({ venues }: VenueShortlistProps) {
+export default function VenueShortlist({
+  venues,
+  onApprove,
+}: VenueShortlistProps) {
+  if (venues.length === 0) {
+    return null;
+  }
+
   return (
     <GlassCard className="p-6">
       <p className="text-xs uppercase tracking-[0.32em] text-seo-muted">
@@ -66,8 +74,11 @@ export default function VenueShortlist({ venues }: VenueShortlistProps) {
         ))}
       </div>
 
-      <button className="mt-5 w-full rounded-full bg-seo-forest px-6 py-4 text-sm font-medium text-seo-cream transition hover:bg-seo-moss">
-        Approve recommended direction
+      <button
+        onClick={onApprove}
+        className="mt-5 w-full rounded-full bg-seo-forest px-6 py-4 text-sm font-medium text-seo-cream transition hover:bg-seo-moss"
+      >
+        Continue to approval
       </button>
     </GlassCard>
   );

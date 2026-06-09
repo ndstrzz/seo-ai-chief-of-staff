@@ -7,10 +7,12 @@ import { PlaylistRecommendation } from "@/types/operation";
 
 type PlaylistRecommendationCardProps = {
   playlists: PlaylistRecommendation[];
+  onApprove: () => void;
 };
 
 export default function PlaylistRecommendationCard({
   playlists,
+  onApprove,
 }: PlaylistRecommendationCardProps) {
   if (playlists.length === 0) {
     return null;
@@ -80,8 +82,11 @@ export default function PlaylistRecommendationCard({
         ))}
       </div>
 
-      <button className="mt-5 w-full rounded-full bg-seo-forest px-6 py-4 text-sm font-medium text-seo-cream transition hover:bg-seo-moss">
-        Approve playlist direction
+      <button
+        onClick={onApprove}
+        className="mt-5 w-full rounded-full bg-seo-forest px-6 py-4 text-sm font-medium text-seo-cream transition hover:bg-seo-moss"
+      >
+        Continue to approval
       </button>
     </GlassCard>
   );
