@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +29,15 @@ export async function GET() {
     show_dialog: "true",
   });
 
+  // Clear any stale token so the callback always writes a fresh one
+  // with the full scopes granted in this authorization request.
+  const cookieStore = await cookies();
+  cookieStore.delete("spotify_access_token");
+  cookieStore.delete("spotify_refresh_token");
+
   return NextResponse.redirect(
     `https://accounts.spotify.com/authorize?${params.toString()}`,
   );
 }
+
+//

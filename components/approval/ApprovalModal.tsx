@@ -52,10 +52,12 @@ export default function ApprovalModal({
 }: ApprovalModalProps) {
   const [playlistUrl, setPlaylistUrl] = useState("");
   const [executionError, setExecutionError] = useState("");
+  const [needsReconnect, setNeedsReconnect] = useState(false);
 
   async function handleRealExecute() {
     setExecutionError("");
     setPlaylistUrl("");
+    setNeedsReconnect(false);
 
     if (plan.type !== "playlist") {
       onExecute();
@@ -83,6 +85,7 @@ export default function ApprovalModal({
             playlistUrl?: string;
             error?: string;
             connectUrl?: string;
+            hint?: string;
           })
         : {
             success: false,
@@ -95,10 +98,20 @@ export default function ApprovalModal({
       }
 
       if (!response.ok || !data.success || !data.playlistUrl) {
+        // 403 = missing scopes → prompt reconnect
+        if (
+          response.status === 403 ||
+          data.error?.includes("403") ||
+          data.hint
+        ) {
+          setNeedsReconnect(true);
+        }
         throw new Error(data.error || "Spotify execution failed.");
       }
 
+      // Success — store URL and immediately open the playlist in a new tab
       setPlaylistUrl(data.playlistUrl);
+      window.open(data.playlistUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
       setExecutionError(
         error instanceof Error ? error.message : "Spotify execution failed.",
@@ -243,21 +256,23 @@ export default function ApprovalModal({
                 </p>
 
                 <h2 className="mt-3 text-3xl font-medium tracking-[-0.04em]">
-                  Approved action completed.
+                  {executionError ? "Action completed with an issue." : "Playlist created successfully."}
                 </h2>
 
                 {executionError ? (
                   <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-red-500">
-                    Failed to execute: {executionError}
+                    {executionError}
                   </p>
                 ) : (
                   <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-seo-muted">
-                    SEO completed the approved action.
+                    Your Spotify playlist is ready. It should have opened in a
+                    new tab — use the button below if it didn&apos;t.
                   </p>
                 )}
 
                 <div className="mx-auto mt-7 flex max-w-md flex-col gap-3 md:flex-row md:justify-center">
-                  {playlistUrl ? (
+                  {/* Success: show Open Playlist button */}
+                  {playlistUrl && (
                     <a
                       href={playlistUrl}
                       target="_blank"
@@ -267,12 +282,15 @@ export default function ApprovalModal({
                       Open Spotify Playlist
                       <ExternalLink size={15} />
                     </a>
-                  ) : (
+                  )}
+
+                  {/* 403 / scope error: prompt reconnect */}
+                  {needsReconnect && !playlistUrl && (
                     <a
                       href="/api/spotify/login"
                       className="flex items-center justify-center gap-2 rounded-full bg-seo-forest px-6 py-4 text-sm font-medium text-seo-cream transition hover:bg-seo-moss"
                     >
-                      Connect Spotify
+                      Reconnect Spotify
                       <ExternalLink size={15} />
                     </a>
                   )}
