@@ -1,69 +1,163 @@
+export const dynamic = "force-dynamic";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request) {
-  const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-  const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+type SpotifyUser = {
+  id: string;
+};
 
-  if (!clientId || !clientSecret || !redirectUri) {
-    return NextResponse.json(
-      { error: "Spotify environment variables are missing." },
-      { status: 500 },
+type SpotifyPlaylist = {
+  id: string;
+  external_urls: {
+    spotify: string;
+  };
+};
+
+const seedQueries = [
+  "lofi jazz instrumental",
+  "acoustic coffeehouse",
+  "soft piano instrumental",
+  "corporate lounge jazz",
+  "chillhop instrumental",
+  "ambient piano",
+  "bossa nova instrumental",
+  "soft acoustic instrumental",
+];
+
+async function spotifyFetch<T>(
+  url: string,
+  accessToken: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+
+  const text = await response.text();
+
+  if (!response.ok) {
+    throw new Error(
+      `Spotify request failed: ${response.status} ${text || response.statusText}`,
     );
   }
 
-  const url = new URL(request.url);
-  const code = url.searchParams.get("code");
-
-  if (!code) {
-    return NextResponse.redirect(`${appUrl}?spotify=failed`);
+  if (!text) {
+    return {} as T;
   }
 
-  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+  return JSON.parse(text) as T;
+}
 
-  const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${basic}`,
-      "Content-Type": "application/x-www-form-urlencoded",
+export async function GET() {
+  return NextResponse.json(
+    {
+      ok: true,
+      message:
+        "Spotify create-playlist route is alive. Use POST to create a playlist.",
     },
-    body: new URLSearchParams({
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: redirectUri,
-    }),
-  });
+    { status: 200 },
+  );
+}
 
-  if (!tokenResponse.ok) {
-    return NextResponse.redirect(`${appUrl}?spotify=failed`);
-  }
+export async function POST(request: Request) {
+  try {
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("spotify_access_token")?.value;
 
-  const tokenData = (await tokenResponse.json()) as {
-    access_token: string;
-    refresh_token?: string;
-    expires_in: number;
-  };
+    if (!accessToken) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Spotify is not connected.",
+          connectUrl: "/api/spotify/login",
+        },
+        { status: 401 },
+      );
+    }
 
-  const response = NextResponse.redirect(`${appUrl}?spotify=connected`);
+    const body = (await request.json().catch(() => ({}))) as {
+      title?: string;
+    };
 
-  response.cookies.set("spotify_access_token", tokenData.access_token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: tokenData.expires_in,
-  });
+    const user = await spotifyFetch<SpotifyUser>(
+      "https://api.spotify.com/v1/me",
+      accessToken,
+    );
 
-  if (tokenData.refresh_token) {
-    response.cookies.set("spotify_refresh_token", tokenData.refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30,
+    const playlist = await spotifyFetch<SpotifyPlaylist>(
+      `https://api.spotify.com/v1/users/${user.id}/playlists`,
+      accessToken,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          name: body.title || "SEO — Corporate LPA Seminar Playlist",
+          description:
+            "Created by SEO, your AI Chief of Staff. Warm, professional, low-distraction seminar playlist.",
+          public: false,
+        }),
+      },
+    );
+
+    const trackUris: string[] = [];
+
+    for (const query of seedQueries) {
+      const search = await spotifyFetch<{
+        tracks?: {
+          items?: Array<{
+            uri: string;
+          }>;
+        };
+      }>(
+        `https://api.spotify.com/v1/search?${new URLSearchParams({
+          q: query,
+          type: "track",
+          limit: "3",
+        }).toString()}`,
+        accessToken,
+      );
+
+      for (const item of search.tracks?.items ?? []) {
+        if (item.uri && !trackUris.includes(item.uri)) {
+          trackUris.push(item.uri);
+        }
+      }
+    }
+
+    if (trackUris.length > 0) {
+      await spotifyFetch(
+        `https://api.spotify.com/v1/playlists/${playlist.id}/tracks`,
+        accessToken,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            uris: trackUris.slice(0, 24),
+          }),
+        },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      playlistUrl: playlist.external_urls.spotify,
+      trackCount: trackUris.slice(0, 24).length,
     });
-  }
+  } catch (error) {
+    console.error("Spotify playlist creation failed:", error);
 
-  return response;
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create Spotify playlist.",
+      },
+      { status: 500 },
+    );
+  }
 }
