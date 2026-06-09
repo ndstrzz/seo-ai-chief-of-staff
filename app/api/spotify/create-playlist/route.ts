@@ -3,11 +3,6 @@ export const dynamic = "force-dynamic";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-type SpotifyUser = {
-  id: string;
-  display_name?: string;
-};
-
 type SpotifyPlaylist = {
   id: string;
   external_urls: {
@@ -82,15 +77,9 @@ export async function POST(request: Request) {
       title?: string;
     };
 
-    const user = await spotifyFetch<SpotifyUser>(
-      "Get Spotify profile",
-      "https://api.spotify.com/v1/me",
-      accessToken,
-    );
-
     const playlist = await spotifyFetch<SpotifyPlaylist>(
       "Create Spotify playlist",
-      `https://api.spotify.com/v1/users/${user.id}/playlists`,
+      "https://api.spotify.com/v1/me/playlists",
       accessToken,
       {
         method: "POST",
@@ -147,7 +136,6 @@ export async function POST(request: Request) {
       success: true,
       playlistUrl: playlist.external_urls.spotify,
       trackCount: trackUris.slice(0, 18).length,
-      owner: user.display_name || user.id,
     });
   } catch (error) {
     return NextResponse.json(
@@ -162,3 +150,4 @@ export async function POST(request: Request) {
     );
   }
 }
+//
