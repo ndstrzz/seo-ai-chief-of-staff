@@ -19,12 +19,18 @@ export default function MoriMascot({ mode = "idle" }: MoriMascotProps) {
       className="mori-stage"
       aria-label={label}
       animate={{
-        scale: mode === "thinking" ? 1.05 : 1,
+        scale: mode === "thinking" ? 1.04 : 1,
+        rotate: mode === "thinking" ? [0, -1.5, 1.5, 0] : 0,
       }}
-      transition={{ duration: 0.6 }}
+      transition={{
+        duration: mode === "thinking" ? 1.6 : 0.6,
+        repeat: mode === "thinking" ? Infinity : 0,
+        ease: "easeInOut",
+      }}
     >
       <div className="mori-ring mori-ring-one" />
       <div className="mori-ring mori-ring-two" />
+      <div className="mori-ring mori-ring-three" />
 
       <div className="mori-body-wrap">
         <div className="mori-head">
@@ -36,6 +42,10 @@ export default function MoriMascot({ mode = "idle" }: MoriMascotProps) {
         <div className="mori-body" />
         <div className="mori-shadow" />
       </div>
+
+      <div className="mori-particle mori-particle-one" />
+      <div className="mori-particle mori-particle-two" />
+      <div className="mori-particle mori-particle-three" />
     </motion.div>
   );
 }
