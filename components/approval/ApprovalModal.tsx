@@ -55,6 +55,7 @@ export default function ApprovalModal({
 
   async function handleRealExecute() {
     setExecutionError("");
+    setPlaylistUrl("");
 
     if (plan.type !== "playlist") {
       onExecute();
@@ -74,12 +75,19 @@ export default function ApprovalModal({
         }),
       });
 
-      const data = (await response.json()) as {
-        success?: boolean;
-        playlistUrl?: string;
-        error?: string;
-        connectUrl?: string;
-      };
+      const rawText = await response.text();
+
+      const data = rawText
+        ? (JSON.parse(rawText) as {
+            success?: boolean;
+            playlistUrl?: string;
+            error?: string;
+            connectUrl?: string;
+          })
+        : {
+            success: false,
+            error: "Empty response from Spotify API route.",
+          };
 
       if (response.status === 401 && data.connectUrl) {
         window.location.href = data.connectUrl;
@@ -240,7 +248,7 @@ export default function ApprovalModal({
 
                 {executionError ? (
                   <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-red-500">
-                    {executionError}
+                    Failed to execute: {executionError}
                   </p>
                 ) : (
                   <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-seo-muted">
