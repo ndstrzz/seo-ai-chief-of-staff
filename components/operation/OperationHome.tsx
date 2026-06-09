@@ -13,12 +13,12 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import SEOBackground from "@/components/background/SEOBackground";
 import MoriMascot from "@/components/home/MoriMascot";
-import { createOperationPlan } from "@/lib/createOperationPlan";
 import {
   getOperationMemory,
   OperationMemoryItem,
   saveOperation,
 } from "@/lib/operationMemory";
+import { OperationPlan } from "@/types/operation";
 
 const suggestions = [
   "Organise an LPA seminar for 250 pax under $10,000",
@@ -34,7 +34,7 @@ const liveSteps = [
   },
   {
     icon: Radio,
-    label: "Research Agent preparing sources",
+    label: "Research Agent preparing Exa query",
   },
   {
     icon: Clock3,
@@ -56,19 +56,37 @@ export default function OperationHome() {
     setMemory(getOperationMemory());
   }, []);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!operation.trim()) return;
 
     setIsThinking(true);
 
-    const plan = createOperationPlan(operation);
-    saveOperation(plan);
+    const response = await fetch("/api/operations/plan", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ operation }),
+    });
+
+    const data = (await response.json()) as {
+      plan?: OperationPlan;
+      error?: string;
+    };
+
+    if (!data.plan) {
+      setIsThinking(false);
+      alert(data.error ?? "SEO failed to create the operation.");
+      return;
+    }
+
+    saveOperation(data.plan);
 
     setTimeout(() => {
-      router.push(`/operation/${plan.id}`);
-    }, 2200);
+      router.push(`/operation/${data.plan?.id}`);
+    }, 1200);
   }
 
   return (
@@ -126,7 +144,7 @@ export default function OperationHome() {
                 disabled={isThinking}
                 className="flex items-center justify-center gap-2 rounded-full bg-seo-forest px-7 py-4 text-sm font-medium text-seo-cream transition hover:scale-[1.02] hover:bg-seo-moss disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isThinking ? "Starting" : "Start"}
+                {isThinking ? "Researching" : "Start"}
                 <ArrowRight size={16} />
               </button>
             </div>

@@ -22,6 +22,17 @@ export type VenueRecommendation = {
   reason: string;
 };
 
+export type ResearchSource = {
+  title: string;
+  url: string;
+};
+
+export type ResearchBrief = {
+  summary: string;
+  signals: string[];
+  sources: ResearchSource[];
+};
+
 export type OperationPlan = {
   id: string;
   title: string;
@@ -29,4 +40,5 @@ export type OperationPlan = {
   agents: OperationAgent[];
   timeline: OperationTimelineItem[];
   venues: VenueRecommendation[];
+  researchBrief: ResearchBrief;
 };

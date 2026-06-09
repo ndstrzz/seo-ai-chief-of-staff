@@ -1,6 +1,13 @@
-import { OperationPlan } from "@/types/operation";
+import { OperationPlan, ResearchBrief } from "@/types/operation";
 
-export function createOperationPlan(title: string): OperationPlan {
+type CreateOperationPlanOptions = {
+  researchBrief?: ResearchBrief;
+};
+
+export function createOperationPlan(
+  title: string,
+  options: CreateOperationPlanOptions = {},
+): OperationPlan {
   const normalizedTitle = title.trim();
 
   return {
@@ -9,7 +16,7 @@ export function createOperationPlan(title: string): OperationPlan {
         ? crypto.randomUUID()
         : `operation-${Date.now()}`,
     title: normalizedTitle,
-    progress: 68,
+    progress: 72,
     agents: [
       {
         name: "Planner",
@@ -53,14 +60,14 @@ export function createOperationPlan(title: string): OperationPlan {
         time: "09:01",
         title: "Planner Agent activated",
         detail:
-          "The operation was split into research, recommendation, budget, and approval workstreams.",
+          "The operation was split into research, recommendation, budget, execution, and approval workstreams.",
         status: "done",
       },
       {
         time: "09:02",
         title: "Research Agent prepared queries",
         detail:
-          "SEO prepared live research queries for venues, trends, and activity ideas.",
+          "SEO prepared live research queries for venues, trends, audience experience, and activity ideas.",
         status: "done",
       },
       {
@@ -68,6 +75,13 @@ export function createOperationPlan(title: string): OperationPlan {
         title: "Execution agents running",
         detail:
           "Venue and budget agents are scoring possible options against the constraints.",
+        status: "running",
+      },
+      {
+        time: "09:04",
+        title: "Recommendation layer forming",
+        detail:
+          "SEO is preparing a shortlist with reasoning, trade-offs, and approval checkpoints.",
         status: "running",
       },
       {
@@ -107,5 +121,22 @@ export function createOperationPlan(title: string): OperationPlan {
           "Cost-efficient and accessible, but less premium for high-end clients.",
       },
     ],
+    researchBrief:
+      options.researchBrief ??
+      {
+        summary:
+          "SEO prepared an executive research brief based on the operation request. Connect an Exa API key to upgrade this from simulated research to live web intelligence.",
+        signals: [
+          "Prioritise accessibility, capacity, and budget control.",
+          "Use interactive activities to make seminar content feel less lecture-heavy.",
+          "Keep human approval before booking, payment, or vendor submission.",
+        ],
+        sources: [
+          {
+            title: "Exa live research not connected yet",
+            url: "https://exa.ai",
+          },
+        ],
+      },
   };
 }

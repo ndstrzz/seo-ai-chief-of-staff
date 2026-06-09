@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import AgentNetwork from "@/components/agents/AgentNetwork";
 import SEOBackground from "@/components/background/SEOBackground";
+import ResearchBriefCard from "@/components/cards/ResearchBriefCard";
 import VenueShortlist from "@/components/cards/VenueShortlist";
 import MoriMascot from "@/components/home/MoriMascot";
 import TopNav from "@/components/navigation/TopNav";
@@ -124,6 +125,8 @@ export default function OperationControl() {
             <AnimatedOperationTimeline items={plan.timeline} />
             <VenueShortlist venues={plan.venues} />
           </div>
+
+          <ResearchBriefCard brief={plan.researchBrief} />
         </div>
       </section>
     </main>
