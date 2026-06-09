@@ -1,88 +1,132 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f4f1e8;
-  --foreground: #1d241c;
+@theme {
+  --color-seo-paper: #f4f1e8;
+  --color-seo-cream: #fffdf6;
+  --color-seo-ink: #22271f;
+  --color-seo-muted: #6f7768;
+  --color-seo-moss: #5b7053;
+  --color-seo-forest: #30432d;
+  --color-seo-stone: #d9d5c9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  background: var(--background);
-  color: var(--foreground);
+  background: #f4f1e8;
+  color: #22271f;
 }
 
-.grain {
+button,
+input {
+  font: inherit;
+}
+
+.seo-noise {
   pointer-events: none;
   position: absolute;
   inset: 0;
   z-index: 2;
-  opacity: 0.22;
+  opacity: 0.2;
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.35), transparent 22%),
-    radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.25), transparent 20%),
-    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 6px 6px;
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.55), transparent 22%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.35), transparent 18%),
+    linear-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 7px 7px;
 }
 
-.moss {
+.seo-orb {
   position: absolute;
   z-index: 1;
   border-radius: 999px;
-  background:
-    radial-gradient(circle, rgba(44, 71, 35, 0.9), rgba(44, 71, 35, 0.35) 42%, transparent 70%);
-  filter: blur(22px);
-  opacity: 0.8;
-  animation: mossFloat 8s ease-in-out infinite alternate;
+  filter: blur(26px);
+  opacity: 0.72;
+  background: radial-gradient(
+    circle,
+    rgba(64, 91, 48, 0.85),
+    rgba(64, 91, 48, 0.32) 45%,
+    transparent 72%
+  );
+  animation: seoFloat 8s ease-in-out infinite alternate;
 }
 
-.moss-one {
+.seo-orb-one {
+  left: -90px;
   top: -80px;
-  left: -70px;
+  width: 320px;
+  height: 290px;
+}
+
+.seo-orb-two {
+  right: -90px;
+  top: 18%;
   width: 300px;
-  height: 260px;
+  height: 340px;
+  animation-delay: 1.4s;
 }
 
-.moss-two {
-  right: -70px;
-  top: 120px;
-  width: 260px;
-  height: 300px;
-  animation-delay: 1.5s;
+.seo-orb-three {
+  bottom: 8%;
+  left: 18%;
+  width: 190px;
+  height: 190px;
+  animation-delay: 2.2s;
 }
 
-.moss-three {
-  bottom: 80px;
-  left: 22%;
-  width: 180px;
-  height: 180px;
-  animation-delay: 2.5s;
-}
-
-@keyframes mossFloat {
+@keyframes seoFloat {
   from {
     transform: translate3d(0, 0, 0) scale(1);
   }
 
   to {
-    transform: translate3d(20px, -18px, 0) scale(1.08);
+    transform: translate3d(24px, -18px, 0) scale(1.08);
   }
 }
 
-.mascot-stage {
+.mori-stage {
   position: relative;
-  width: 280px;
-  height: 280px;
+  margin: 3.2rem 0 2.4rem;
+  width: 290px;
+  height: 290px;
   perspective: 900px;
 }
 
-.mascot {
+.mori-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 1px solid rgba(48, 67, 45, 0.18);
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  animation: moriRing 3.2s ease-in-out infinite;
+}
+
+.mori-ring-one {
+  width: 220px;
+  height: 220px;
+}
+
+.mori-ring-two {
+  width: 275px;
+  height: 275px;
+  animation-delay: 0.75s;
+}
+
+.mori-body-wrap {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  animation: mascotThink 3.6s ease-in-out infinite;
+  animation: moriThink 3.8s ease-in-out infinite;
 }
 
-.mascot-head {
+.mori-head {
   position: absolute;
   left: 50%;
   top: 34px;
@@ -91,50 +135,50 @@ body {
   transform: translateX(-50%) rotateX(10deg);
   border-radius: 48% 52% 46% 54%;
   background:
-    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.95), transparent 18%),
-    radial-gradient(circle at 66% 72%, rgba(68, 93, 45, 0.95), rgba(42, 59, 32, 1) 55%, rgba(24, 33, 22, 1));
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.95), transparent 17%),
+    radial-gradient(circle at 65% 72%, rgba(92, 116, 77, 0.96), #33462e 55%, #1d291b);
   box-shadow:
-    inset -18px -24px 45px rgba(8, 14, 8, 0.35),
-    inset 14px 18px 35px rgba(255, 255, 255, 0.18),
-    0 38px 70px rgba(42, 59, 32, 0.35);
+    inset -18px -24px 46px rgba(10, 16, 10, 0.34),
+    inset 16px 18px 36px rgba(255, 255, 255, 0.18),
+    0 42px 80px rgba(44, 60, 38, 0.32);
 }
 
-.mascot-body {
+.mori-body {
   position: absolute;
   left: 50%;
-  bottom: 52px;
+  bottom: 54px;
   width: 118px;
-  height: 92px;
+  height: 94px;
   transform: translateX(-50%) rotateX(12deg);
   border-radius: 46% 46% 38% 38%;
   background:
-    radial-gradient(circle at 35% 20%, rgba(255, 255, 255, 0.55), transparent 18%),
-    linear-gradient(145deg, #71845f, #2b3b26 65%, #1b2518);
+    radial-gradient(circle at 35% 18%, rgba(255, 255, 255, 0.55), transparent 18%),
+    linear-gradient(145deg, #798d67, #30432d 64%, #1c2919);
   box-shadow:
-    inset -14px -18px 32px rgba(6, 12, 6, 0.35),
-    0 28px 60px rgba(42, 59, 32, 0.28);
+    inset -14px -18px 34px rgba(8, 13, 8, 0.35),
+    0 28px 62px rgba(44, 60, 38, 0.26);
 }
 
-.mascot-eye {
+.mori-eye {
   position: absolute;
-  top: 62px;
+  top: 63px;
   width: 14px;
   height: 20px;
   border-radius: 999px;
-  background: #f5f1df;
-  box-shadow: 0 0 18px rgba(245, 241, 223, 0.8);
-  animation: blink 4.5s infinite;
+  background: #fffdf6;
+  box-shadow: 0 0 18px rgba(255, 253, 246, 0.85);
+  animation: moriBlink 4.6s infinite;
 }
 
-.left-eye {
+.mori-eye-left {
   left: 48px;
 }
 
-.right-eye {
+.mori-eye-right {
   right: 48px;
 }
 
-.mascot-glow {
+.mori-mouth-glow {
   position: absolute;
   left: 50%;
   bottom: 32px;
@@ -142,98 +186,55 @@ body {
   height: 10px;
   transform: translateX(-50%);
   border-radius: 999px;
-  background: rgba(245, 241, 223, 0.55);
+  background: rgba(255, 253, 246, 0.46);
   filter: blur(8px);
 }
 
-.mascot-shadow {
+.mori-shadow {
   position: absolute;
   left: 50%;
-  bottom: 28px;
-  width: 160px;
-  height: 34px;
+  bottom: 29px;
+  width: 165px;
+  height: 36px;
   transform: translateX(-50%);
   border-radius: 999px;
-  background: rgba(37, 48, 31, 0.22);
+  background: rgba(36, 44, 31, 0.2);
   filter: blur(14px);
-  animation: shadowPulse 3.6s ease-in-out infinite;
+  animation: moriShadow 3.8s ease-in-out infinite;
 }
 
-.thinking-ring {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  border: 1px solid rgba(43, 61, 35, 0.22);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  animation: ringPulse 3s ease-in-out infinite;
-}
-
-.ring-one {
-  width: 220px;
-  height: 220px;
-}
-
-.ring-two {
-  width: 270px;
-  height: 270px;
-  animation-delay: 0.7s;
-}
-
-.thought-dot {
+.mori-dot {
   position: absolute;
   border-radius: 999px;
-  background: #2f4628;
-  box-shadow: 0 12px 30px rgba(47, 70, 40, 0.3);
-  animation: dotFloat 2.2s ease-in-out infinite;
+  background: #30432d;
+  box-shadow: 0 12px 30px rgba(48, 67, 45, 0.28);
+  animation: moriDot 2.25s ease-in-out infinite;
 }
 
-.dot-one {
-  right: 48px;
+.mori-dot-one {
+  right: 52px;
   top: 44px;
   width: 11px;
   height: 11px;
 }
 
-.dot-two {
-  right: 28px;
-  top: 22px;
+.mori-dot-two {
+  right: 31px;
+  top: 23px;
   width: 8px;
   height: 8px;
   animation-delay: 0.25s;
 }
 
-.dot-three {
-  right: 12px;
-  top: 4px;
+.mori-dot-three {
+  right: 15px;
+  top: 6px;
   width: 5px;
   height: 5px;
   animation-delay: 0.5s;
 }
 
-.soft-card {
-  border: 1px solid #d9d5c9;
-  border-radius: 1.5rem;
-  background: rgba(255, 253, 246, 0.58);
-  padding: 1.25rem;
-  backdrop-filter: blur(18px);
-  box-shadow: 0 18px 50px rgba(36, 45, 30, 0.08);
-}
-
-.soft-card h3 {
-  margin-top: 0.4rem;
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.card-label {
-  font-size: 0.68rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: #6f7768;
-}
-
-@keyframes mascotThink {
+@keyframes moriThink {
   0%,
   100% {
     transform: translateY(0) rotateY(-6deg) rotateX(2deg);
@@ -244,33 +245,20 @@ body {
   }
 }
 
-@keyframes shadowPulse {
+@keyframes moriRing {
   0%,
   100% {
     opacity: 0.22;
-    transform: translateX(-50%) scale(1);
-  }
-
-  50% {
-    opacity: 0.14;
-    transform: translateX(-50%) scale(0.82);
-  }
-}
-
-@keyframes ringPulse {
-  0%,
-  100% {
-    opacity: 0.25;
     transform: translate(-50%, -50%) scale(0.96);
   }
 
   50% {
-    opacity: 0.55;
+    opacity: 0.54;
     transform: translate(-50%, -50%) scale(1.04);
   }
 }
 
-@keyframes blink {
+@keyframes moriBlink {
   0%,
   92%,
   100% {
@@ -282,15 +270,28 @@ body {
   }
 }
 
-@keyframes dotFloat {
+@keyframes moriShadow {
   0%,
   100% {
-    transform: translateY(0);
-    opacity: 0.45;
+    opacity: 0.2;
+    transform: translateX(-50%) scale(1);
   }
 
   50% {
-    transform: translateY(-9px);
+    opacity: 0.13;
+    transform: translateX(-50%) scale(0.82);
+  }
+}
+
+@keyframes moriDot {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translateY(0);
+  }
+
+  50% {
     opacity: 1;
+    transform: translateY(-9px);
   }
 }
