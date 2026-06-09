@@ -1,65 +1,85 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="relative min-h-screen overflow-hidden bg-[#f4f1e8] text-[#1d241c]">
+      <div className="moss moss-one" />
+      <div className="moss moss-two" />
+      <div className="moss moss-three" />
+      <div className="grain" />
+
+      <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6">
+        <nav className="absolute left-8 top-8 right-8 flex items-center justify-between">
+          <div className="tracking-[0.6em] text-sm font-semibold">SEO</div>
+          <div className="text-xs italic text-[#45513e]">
+            Smart Executive Operator
+          </div>
+        </nav>
+
+        <div className="mb-10 text-center">
+          <p className="mb-4 text-xs uppercase tracking-[0.45em] text-[#66715f]">
+            Autonomous Chief of Staff
           </p>
+
+          <h1 className="max-w-4xl text-5xl font-medium leading-tight tracking-tight md:text-7xl">
+            Delegate the mission.
+            <br />
+            Let SEO think, plan, and execute.
+          </h1>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        <div className="mascot-stage">
+          <div className="thinking-ring ring-one" />
+          <div className="thinking-ring ring-two" />
+
+          <div className="mascot">
+            <div className="mascot-head">
+              <div className="mascot-eye left-eye" />
+              <div className="mascot-eye right-eye" />
+              <div className="mascot-glow" />
+            </div>
+
+            <div className="mascot-body" />
+            <div className="mascot-shadow" />
+          </div>
+
+          <div className="thought-dot dot-one" />
+          <div className="thought-dot dot-two" />
+          <div className="thought-dot dot-three" />
+        </div>
+
+        <div className="mt-10 w-full max-w-2xl rounded-[2rem] border border-[#d9d5c9] bg-[#fffdf6]/70 p-3 shadow-[0_20px_80px_rgba(36,45,30,0.12)] backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <input
+              className="w-full bg-transparent px-5 py-4 text-sm outline-none placeholder:text-[#8a927f]"
+              placeholder="Give SEO a mission... e.g. Organise an LPA seminar for 250 pax under $10,000"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+            <button className="rounded-full bg-[#28351f] px-6 py-4 text-sm text-[#f4f1e8] transition hover:bg-[#3f522f]">
+              Start
+            </button>
+          </div>
         </div>
-      </main>
-    </div>
+
+        <div className="mt-8 grid w-full max-w-4xl gap-4 md:grid-cols-3">
+          <div className="soft-card">
+            <p className="card-label">Mission</p>
+            <h3>Seminar Planning</h3>
+          </div>
+
+          <div className="soft-card">
+            <p className="card-label">Agent</p>
+            <h3>Researching with Exa</h3>
+          </div>
+
+          <div className="soft-card">
+            <p className="card-label">Status</p>
+            <h3>Awaiting instruction</h3>
+          </div>
+        </div>
+
+        <footer className="absolute bottom-8 text-xs text-[#6f7768]">
+          Privacy-first agentic assistant for executives.
+        </footer>
+      </section>
+    </main>
   );
 }
