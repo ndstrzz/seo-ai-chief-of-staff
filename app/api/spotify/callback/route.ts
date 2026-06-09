@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const appUrl = url.origin;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || url.origin;
 
   if (!code) {
     return NextResponse.redirect(`${appUrl}?spotify=failed`);
@@ -39,6 +39,7 @@ export async function GET(request: Request) {
 
   if (!tokenResponse.ok) {
     const errorText = await tokenResponse.text();
+
     console.error(
       "Spotify token exchange failed:",
       tokenResponse.status,
@@ -79,4 +80,3 @@ export async function GET(request: Request) {
 
   return response;
 }
-//

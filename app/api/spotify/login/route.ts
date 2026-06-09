@@ -28,8 +28,6 @@ export async function GET() {
     show_dialog: "true",
   });
 
-  // Delete stale cookies on the redirect response itself —
-  // this is the only way Next.js actually clears them.
   const response = NextResponse.redirect(
     `https://accounts.spotify.com/authorize?${params.toString()}`,
   );

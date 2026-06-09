@@ -5,6 +5,8 @@ import { NextResponse } from "next/server";
 
 type SpotifyUser = {
   id: string;
+  display_name?: string;
+  product?: string;
 };
 
 type SpotifyPlaylist = {
@@ -18,6 +20,7 @@ type SpotifySearchResponse = {
   tracks?: {
     items?: Array<{
       uri?: string;
+      name?: string;
     }>;
   };
 };
@@ -26,6 +29,7 @@ type PlaylistPayload = {
   id?: string;
   name?: string;
   description?: string;
+  details?: string;
   seedQueries?: string[];
   tracks?: Array<{
     title?: string;
@@ -61,6 +65,13 @@ async function spotifyFetch<T>(
   const text = await response.text();
 
   if (!response.ok) {
+    console.log("========== SPOTIFY DEBUG ==========");
+    console.log("LABEL:", label);
+    console.log("URL:", url);
+    console.log("STATUS:", response.status);
+    console.log("BODY:", text);
+    console.log("===================================");
+
     throw new Error(
       `${label} failed: ${response.status} ${text || response.statusText}`,
     );
@@ -81,9 +92,9 @@ function buildSearchQueries(playlist?: PlaylistPayload) {
 
   const seedQueries = playlist?.seedQueries ?? [];
 
-  const merged = [...trackQueries, ...seedQueries, ...fallbackSeedQueries];
-
-  return Array.from(new Set(merged)).slice(0, 10);
+  return Array.from(
+    new Set([...trackQueries, ...seedQueries, ...fallbackSeedQueries]),
+  ).slice(0, 10);
 }
 
 export async function GET() {
@@ -98,6 +109,12 @@ export async function POST(request: Request) {
   try {
     const cookieStore = await cookies();
     const accessToken = cookieStore.get("spotify_access_token")?.value;
+
+    console.log("Access token exists:", Boolean(accessToken));
+
+    if (accessToken) {
+      console.log("Access token preview:", `${accessToken.substring(0, 20)}...`);
+    }
 
     if (!accessToken) {
       return NextResponse.json(
@@ -126,11 +143,21 @@ export async function POST(request: Request) {
       },
     );
 
+    console.log("Spotify user:", user);
+
     if (!user.id) {
       throw new Error("Spotify user ID was not found.");
     }
 
-    const playlist = await spotifyFetch<SpotifyPlaylist>(
+    const playlistName =
+      selectedPlaylist?.name || body.title || "SEO — Corporate Seminar Playlist";
+
+    const playlistDescription =
+      selectedPlaylist?.details ||
+      selectedPlaylist?.description ||
+      "Created by SEO, your AI Chief of Staff. Warm, professional, low-distraction seminar playlist.";
+
+    const createdPlaylist = await spotifyFetch<SpotifyPlaylist>(
       "Create Spotify playlist",
       `https://api.spotify.com/v1/users/${encodeURIComponent(
         user.id,
@@ -139,13 +166,8 @@ export async function POST(request: Request) {
       {
         method: "POST",
         body: JSON.stringify({
-          name:
-            selectedPlaylist?.name ||
-            body.title ||
-            "SEO — Corporate Seminar Playlist",
-          description:
-            selectedPlaylist?.description ||
-            "Created by SEO, your AI Chief of Staff. Warm, professional, low-distraction seminar playlist.",
+          name: playlistName,
+          description: playlistDescription.slice(0, 300),
           public: false,
           collaborative: false,
         }),
@@ -185,7 +207,7 @@ export async function POST(request: Request) {
       await spotifyFetch(
         "Add tracks to playlist",
         `https://api.spotify.com/v1/playlists/${encodeURIComponent(
-          playlist.id,
+          createdPlaylist.id,
         )}/tracks`,
         accessToken,
         {
@@ -200,8 +222,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      playlistUrl: playlist.external_urls.spotify,
-      playlistId: playlist.id,
+      playlistUrl: createdPlaylist.external_urls.spotify,
+      playlistId: createdPlaylist.id,
       trackCount: finalTrackUris.length,
     });
   } catch (error) {
@@ -216,7 +238,7 @@ export async function POST(request: Request) {
         error: message,
         hint:
           message.includes("403")
-            ? "Reconnect Spotify after adding playlist-modify-private and playlist-modify-public scopes."
+            ? "Check Spotify app Users and Access, reconnect Spotify, and confirm playlist-modify-private/public scopes were granted."
             : undefined,
       },
       { status: 500 },
