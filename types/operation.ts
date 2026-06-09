@@ -24,13 +24,23 @@ export type VenueRecommendation = {
   reason: string;
 };
 
+export type PlaylistTrack = {
+  title: string;
+  intent: string;
+  searchQuery: string;
+};
+
 export type PlaylistRecommendation = {
+  id: string;
   name: string;
   mood: string;
   duration: string;
   trackCount: string;
   reason: string;
-  tracks: string[];
+  details: string;
+  bestFor: string;
+  seedQueries: string[];
+  tracks: PlaylistTrack[];
 };
 
 export type ResearchSource = {

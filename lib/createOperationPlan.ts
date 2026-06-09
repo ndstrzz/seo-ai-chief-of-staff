@@ -173,28 +173,21 @@ function createTimeline(
         time: "09:02",
         title: "Audience mood profile created",
         detail:
-          "SEO selected a professional, warm, low-distraction seminar atmosphere.",
+          "SEO selected multiple playlist directions for the user to inspect before approval.",
         status: "done",
       },
       {
         time: "09:03",
-        title: "Music Agent curating tracks",
+        title: "Music Agent curated options",
         detail:
-          "Songs are being selected for arrival, networking, break time, and closing segments.",
-        status: "running",
-      },
-      {
-        time: "09:04",
-        title: "Spotify Agent preparing playlist",
-        detail:
-          "SEO is preparing the playlist structure. Actual Spotify publishing will require connection and approval.",
+          "SEO prepared several playlist recommendations with track intent and song search strategy.",
         status: "running",
       },
       {
         time: "Pending",
         title: "Human approval required",
         detail:
-          "SEO will not publish or modify a Spotify account without explicit confirmation.",
+          "The user must select one playlist direction before SEO creates it in Spotify.",
         status: "locked",
       },
     ];
@@ -247,27 +240,6 @@ function createTimeline(
       status: "done",
     },
     {
-      time: "09:02",
-      title: "Research Agent prepared queries",
-      detail:
-        "SEO prepared live research queries for venues, trends, audience experience, and activity ideas.",
-      status: "done",
-    },
-    {
-      time: "09:03",
-      title: "Execution agents running",
-      detail:
-        "Venue and budget agents are scoring possible options against the constraints.",
-      status: "running",
-    },
-    {
-      time: "09:04",
-      title: "Recommendation layer forming",
-      detail:
-        "SEO is preparing a shortlist with reasoning, trade-offs, and approval checkpoints.",
-      status: "running",
-    },
-    {
       time: "Pending",
       title: "Human approval required",
       detail:
@@ -315,48 +287,144 @@ function createPlaylists(type: OperationType): PlaylistRecommendation[] {
 
   return [
     {
+      id: "warm-corporate-flow",
       name: "LPA Seminar — Warm Corporate Flow",
       mood: "Professional / Warm",
       duration: "2 hr 05 min",
-      trackCount: "32 tracks",
+      trackCount: "18 tracks",
       reason:
-        "Best for guest arrival, networking, short breaks, and calm closing moments without distracting from the seminar.",
+        "Best all-round playlist for guest arrival, networking, breaks, and calm closing moments.",
+      details:
+        "This playlist keeps the room polished and premium without becoming distracting. It uses soft jazz, light acoustic textures, piano ambience, and gentle lounge tracks.",
+      bestFor: "Seminars, client appreciation events, LPA talks, insurance talks.",
+      seedQueries: [
+        "lofi jazz instrumental",
+        "acoustic coffeehouse instrumental",
+        "soft piano instrumental",
+        "corporate lounge jazz",
+        "chillhop instrumental",
+        "ambient piano",
+      ],
       tracks: [
-        "Soft instrumental jazz",
-        "Lo-fi corporate lounge",
-        "Acoustic coffeehouse pop",
-        "Warm piano ambience",
-        "Light upbeat networking tracks",
+        {
+          title: "Soft instrumental jazz",
+          intent: "Warm arrival mood",
+          searchQuery: "soft instrumental jazz corporate",
+        },
+        {
+          title: "Lo-fi corporate lounge",
+          intent: "Low-distraction networking",
+          searchQuery: "lofi corporate lounge instrumental",
+        },
+        {
+          title: "Acoustic coffeehouse instrumental",
+          intent: "Friendly client atmosphere",
+          searchQuery: "acoustic coffeehouse instrumental",
+        },
+        {
+          title: "Warm piano ambience",
+          intent: "Calm transition moments",
+          searchQuery: "warm piano ambience instrumental",
+        },
+        {
+          title: "Light upbeat networking tracks",
+          intent: "Break time energy",
+          searchQuery: "light upbeat networking instrumental",
+        },
       ],
     },
     {
+      id: "executive-networking-background",
       name: "Executive Networking Background",
       mood: "Light / Social",
       duration: "1 hr 45 min",
-      trackCount: "26 tracks",
+      trackCount: "18 tracks",
       reason:
-        "Better suited for pre-event mingling and post-seminar networking where the room needs energy but not noise.",
+        "Better for a room where people are mingling, chatting, and moving around before or after the main event.",
+      details:
+        "This option has slightly more rhythm and social energy. It still avoids lyrics-heavy or distracting tracks, but feels more lively than the warm corporate option.",
+      bestFor: "Networking sessions, post-event mingling, client cocktail-style rooms.",
+      seedQueries: [
+        "nu jazz lounge instrumental",
+        "modern soul instrumental",
+        "light electronic chill instrumental",
+        "soft upbeat cafe music",
+        "corporate networking background music",
+        "smooth lounge instrumental",
+      ],
       tracks: [
-        "Nu jazz lounge",
-        "Modern soul instrumental",
-        "Clean acoustic rhythm",
-        "Light electronic chill",
-        "Soft upbeat cafe music",
+        {
+          title: "Nu jazz lounge",
+          intent: "Premium social energy",
+          searchQuery: "nu jazz lounge instrumental",
+        },
+        {
+          title: "Modern soul instrumental",
+          intent: "Warm conversational tone",
+          searchQuery: "modern soul instrumental background",
+        },
+        {
+          title: "Clean acoustic rhythm",
+          intent: "Friendly movement",
+          searchQuery: "clean acoustic rhythm instrumental",
+        },
+        {
+          title: "Light electronic chill",
+          intent: "Modern executive atmosphere",
+          searchQuery: "light electronic chill instrumental",
+        },
+        {
+          title: "Soft upbeat cafe music",
+          intent: "Approachable break mood",
+          searchQuery: "soft upbeat cafe instrumental",
+        },
       ],
     },
     {
+      id: "calm-focus-seminar-mix",
       name: "Calm Focus Seminar Mix",
       mood: "Minimal / Focused",
       duration: "1 hr 30 min",
-      trackCount: "22 tracks",
+      trackCount: "18 tracks",
       reason:
-        "Best for a more serious seminar tone where music should remain almost invisible in the background.",
+        "Best when the event should feel serious, calm, and almost silent in the background.",
+      details:
+        "This playlist is the least distracting option. It focuses on minimal piano, ambient textures, and gentle instrumental pieces that support concentration.",
+      bestFor: "Formal seminars, legal/finance talks, serious briefing sessions.",
+      seedQueries: [
+        "minimal piano instrumental",
+        "ambient strings instrumental",
+        "soft lo-fi beats instrumental",
+        "gentle atmospheric pads",
+        "low energy instrumental pop",
+        "calm focus instrumental music",
+      ],
       tracks: [
-        "Minimal piano",
-        "Ambient strings",
-        "Soft lo-fi beats",
-        "Gentle atmospheric pads",
-        "Low-energy instrumental pop",
+        {
+          title: "Minimal piano",
+          intent: "Quiet professional focus",
+          searchQuery: "minimal piano instrumental",
+        },
+        {
+          title: "Ambient strings",
+          intent: "Premium calm atmosphere",
+          searchQuery: "ambient strings instrumental",
+        },
+        {
+          title: "Soft lo-fi beats",
+          intent: "Gentle pacing",
+          searchQuery: "soft lofi beats instrumental",
+        },
+        {
+          title: "Gentle atmospheric pads",
+          intent: "Invisible background layer",
+          searchQuery: "gentle atmospheric pads instrumental",
+        },
+        {
+          title: "Low-energy instrumental pop",
+          intent: "Light closing mood",
+          searchQuery: "low energy instrumental pop",
+        },
       ],
     },
   ];

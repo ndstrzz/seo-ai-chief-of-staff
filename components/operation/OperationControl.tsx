@@ -20,11 +20,13 @@ import TopNav from "@/components/navigation/TopNav";
 import AnimatedOperationTimeline from "@/components/timeline/AnimatedOperationTimeline";
 import GlassCard from "@/components/ui/GlassCard";
 import { createOperationPlan } from "@/lib/createOperationPlan";
-import { OperationPlan } from "@/types/operation";
+import { OperationPlan, PlaylistRecommendation } from "@/types/operation";
 
 export default function OperationControl() {
   const params = useParams<{ id: string }>();
   const [plan, setPlan] = useState<OperationPlan | null>(null);
+  const [selectedPlaylist, setSelectedPlaylist] =
+    useState<PlaylistRecommendation | null>(null);
   const [isApprovalOpen, setIsApprovalOpen] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -34,7 +36,13 @@ export default function OperationControl() {
       const stored = localStorage.getItem(`seo-operation-${params.id}`);
 
       if (stored) {
-        setPlan(JSON.parse(stored));
+        const storedPlan = JSON.parse(stored) as OperationPlan;
+        setPlan(storedPlan);
+
+        if (storedPlan.type === "playlist" && storedPlan.playlists[0]) {
+          setSelectedPlaylist(storedPlan.playlists[0]);
+        }
+
         return;
       }
 
@@ -51,20 +59,30 @@ export default function OperationControl() {
         );
 
         setPlan(data.plan);
+
+        if (data.plan.type === "playlist" && data.plan.playlists[0]) {
+          setSelectedPlaylist(data.plan.playlists[0]);
+        }
+
         return;
       }
 
-      setPlan(
-        createOperationPlan(
-          "Organise an LPA seminar for 250 pax under $10,000",
-        ),
+      const fallbackPlan = createOperationPlan(
+        "Organise an LPA seminar for 250 pax under $10,000",
       );
+
+      setPlan(fallbackPlan);
     }
 
     loadOperation();
   }, [params.id]);
 
   function handleOpenApproval() {
+    if (plan?.type === "playlist" && !selectedPlaylist) {
+      alert("Please select one Spotify playlist first.");
+      return;
+    }
+
     setIsApprovalOpen(true);
     setIsExecuting(false);
     setIsComplete(false);
@@ -91,7 +109,7 @@ export default function OperationControl() {
 
   const actionLabel =
     plan.type === "playlist"
-      ? "Spotify publishing requires approval"
+      ? "Spotify publishing requires playlist selection and approval"
       : "Booking requires approval";
 
   return (
@@ -192,6 +210,8 @@ export default function OperationControl() {
             {plan.type === "playlist" ? (
               <PlaylistRecommendationCard
                 playlists={plan.playlists}
+                selectedPlaylist={selectedPlaylist}
+                onSelectPlaylist={setSelectedPlaylist}
                 onApprove={handleOpenApproval}
               />
             ) : (
@@ -209,6 +229,7 @@ export default function OperationControl() {
 
       <ApprovalModal
         plan={plan}
+        selectedPlaylist={selectedPlaylist}
         isOpen={isApprovalOpen}
         isExecuting={isExecuting}
         isComplete={isComplete}

@@ -22,7 +22,18 @@ type SpotifySearchResponse = {
   };
 };
 
-const seedQueries = [
+type PlaylistPayload = {
+  id?: string;
+  name?: string;
+  description?: string;
+  seedQueries?: string[];
+  tracks?: Array<{
+    title?: string;
+    searchQuery?: string;
+  }>;
+};
+
+const fallbackSeedQueries = [
   "lofi jazz instrumental",
   "acoustic coffeehouse instrumental",
   "soft piano instrumental",
@@ -62,6 +73,19 @@ async function spotifyFetch<T>(
   return JSON.parse(text) as T;
 }
 
+function buildSearchQueries(playlist?: PlaylistPayload) {
+  const trackQueries =
+    playlist?.tracks
+      ?.map((track) => track.searchQuery || track.title)
+      .filter((query): query is string => Boolean(query)) ?? [];
+
+  const seedQueries = playlist?.seedQueries ?? [];
+
+  const merged = [...trackQueries, ...seedQueries, ...fallbackSeedQueries];
+
+  return Array.from(new Set(merged)).slice(0, 10);
+}
+
 export async function GET() {
   return NextResponse.json({
     ok: true,
@@ -88,7 +112,10 @@ export async function POST(request: Request) {
 
     const body = (await request.json().catch(() => ({}))) as {
       title?: string;
+      playlist?: PlaylistPayload;
     };
+
+    const selectedPlaylist = body.playlist;
 
     const user = await spotifyFetch<SpotifyUser>(
       "Get Spotify user",
@@ -112,8 +139,12 @@ export async function POST(request: Request) {
       {
         method: "POST",
         body: JSON.stringify({
-          name: body.title || "SEO — Corporate Seminar Playlist",
+          name:
+            selectedPlaylist?.name ||
+            body.title ||
+            "SEO — Corporate Seminar Playlist",
           description:
+            selectedPlaylist?.description ||
             "Created by SEO, your AI Chief of Staff. Warm, professional, low-distraction seminar playlist.",
           public: false,
           collaborative: false,
@@ -122,12 +153,14 @@ export async function POST(request: Request) {
     );
 
     const trackUris: string[] = [];
+    const searchQueries = buildSearchQueries(selectedPlaylist);
 
-    for (const query of seedQueries) {
+    for (const query of searchQueries) {
       const searchParams = new URLSearchParams({
         q: query,
         type: "track",
         limit: "3",
+        market: "SG",
       });
 
       const search = await spotifyFetch<SpotifySearchResponse>(
