@@ -9,6 +9,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import { useState } from "react";
 import MoriMascot from "@/components/home/MoriMascot";
 import { OperationPlan } from "@/types/operation";
 
@@ -24,49 +25,21 @@ type ApprovalModalProps = {
 function getExecutionSteps(type: OperationPlan["type"]) {
   if (type === "playlist") {
     return [
-      "Preparing Spotify workspace",
-      "Creating playlist structure",
-      "Adding recommended track categories",
-      "Saving playlist metadata",
-      "Returning playlist preview link",
-    ];
-  }
-
-  if (type === "travel") {
-    return [
-      "Preparing travel workspace",
-      "Checking itinerary requirements",
-      "Preparing traveller detail gate",
-      "Creating approval summary",
-      "Waiting before booking or payment",
+      "Checking Spotify connection",
+      "Creating private playlist",
+      "Searching professional seminar tracks",
+      "Adding songs into playlist",
+      "Returning Spotify playlist URL",
     ];
   }
 
   return [
-    "Preparing vendor workspace",
+    "Preparing workspace",
     "Creating recommendation package",
-    "Preparing enquiry message",
-    "Creating approval summary",
-    "Waiting before booking or payment",
+    "Preparing approval summary",
+    "Locking sensitive action",
+    "Returning execution result",
   ];
-}
-
-function getActionTitle(type: OperationPlan["type"]) {
-  if (type === "playlist") return "Create Spotify playlist";
-  if (type === "travel") return "Prepare travel booking";
-  return "Approve recommended direction";
-}
-
-function getSensitiveAction(type: OperationPlan["type"]) {
-  if (type === "playlist") {
-    return "This will prepare a Spotify playlist workflow. Publishing to the real account will require Spotify connection.";
-  }
-
-  if (type === "travel") {
-    return "This can prepare flight options, but passport access and payment remain locked behind approval.";
-  }
-
-  return "This can prepare vendor contact steps, but booking, deposits, and form submission remain locked behind approval.";
 }
 
 export default function ApprovalModal({
@@ -77,6 +50,54 @@ export default function ApprovalModal({
   onClose,
   onExecute,
 }: ApprovalModalProps) {
+  const [playlistUrl, setPlaylistUrl] = useState("");
+  const [executionError, setExecutionError] = useState("");
+
+  async function handleRealExecute() {
+    setExecutionError("");
+
+    if (plan.type !== "playlist") {
+      onExecute();
+      return;
+    }
+
+    try {
+      onExecute();
+
+      const response = await fetch("/api/spotify/create-playlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: `SEO — ${plan.title}`,
+        }),
+      });
+
+      const data = (await response.json()) as {
+        success?: boolean;
+        playlistUrl?: string;
+        error?: string;
+        connectUrl?: string;
+      };
+
+      if (response.status === 401 && data.connectUrl) {
+        window.location.href = data.connectUrl;
+        return;
+      }
+
+      if (!response.ok || !data.success || !data.playlistUrl) {
+        throw new Error(data.error || "Spotify execution failed.");
+      }
+
+      setPlaylistUrl(data.playlistUrl);
+    } catch (error) {
+      setExecutionError(
+        error instanceof Error ? error.message : "Spotify execution failed.",
+      );
+    }
+  }
+
   const executionSteps = getExecutionSteps(plan.type);
 
   return (
@@ -128,7 +149,9 @@ export default function ApprovalModal({
                   <div className="mt-6 rounded-3xl border border-seo-stone bg-seo-paper/55 p-5">
                     <div className="mb-4 flex items-center gap-2 text-sm font-medium text-seo-forest">
                       <Sparkles size={17} />
-                      {getActionTitle(plan.type)}
+                      {plan.type === "playlist"
+                        ? "Create Spotify playlist"
+                        : "Approve recommended direction"}
                     </div>
 
                     <p className="text-sm leading-6 text-seo-muted">
@@ -143,7 +166,9 @@ export default function ApprovalModal({
                     </div>
 
                     <p className="text-sm leading-6 text-seo-muted">
-                      {getSensitiveAction(plan.type)}
+                      {plan.type === "playlist"
+                        ? "This will create a private Spotify playlist in your Spotify account."
+                        : "This will prepare the execution package but will not make payment or booking."}
                     </p>
                   </div>
 
@@ -156,7 +181,7 @@ export default function ApprovalModal({
                     </button>
 
                     <button
-                      onClick={onExecute}
+                      onClick={handleRealExecute}
                       className="rounded-full bg-seo-forest px-6 py-4 text-sm font-medium text-seo-cream transition hover:bg-seo-moss"
                     >
                       Approve & Execute
@@ -213,22 +238,36 @@ export default function ApprovalModal({
                   Approved action completed.
                 </h2>
 
-                <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-seo-muted">
-                  SEO completed the safe execution layer. Real external account
-                  actions can be connected next through Spotify OAuth, browser
-                  automation, or Stripe.
-                </p>
+                {executionError ? (
+                  <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-red-500">
+                    {executionError}
+                  </p>
+                ) : (
+                  <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-seo-muted">
+                    SEO completed the approved action.
+                  </p>
+                )}
 
                 <div className="mx-auto mt-7 flex max-w-md flex-col gap-3 md:flex-row md:justify-center">
-                  <a
-                    href="https://open.spotify.com"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center justify-center gap-2 rounded-full bg-seo-forest px-6 py-4 text-sm font-medium text-seo-cream transition hover:bg-seo-moss"
-                  >
-                    Open workspace
-                    <ExternalLink size={15} />
-                  </a>
+                  {playlistUrl ? (
+                    <a
+                      href={playlistUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-center gap-2 rounded-full bg-seo-forest px-6 py-4 text-sm font-medium text-seo-cream transition hover:bg-seo-moss"
+                    >
+                      Open Spotify Playlist
+                      <ExternalLink size={15} />
+                    </a>
+                  ) : (
+                    <a
+                      href="/api/spotify/login"
+                      className="flex items-center justify-center gap-2 rounded-full bg-seo-forest px-6 py-4 text-sm font-medium text-seo-cream transition hover:bg-seo-moss"
+                    >
+                      Connect Spotify
+                      <ExternalLink size={15} />
+                    </a>
+                  )}
 
                   <button
                     onClick={onClose}
