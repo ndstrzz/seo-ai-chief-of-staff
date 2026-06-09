@@ -2,10 +2,12 @@
 
 import { motion } from "framer-motion";
 import { CheckCircle2, LockKeyhole, ShieldCheck } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import AgentNetwork from "@/components/agents/AgentNetwork";
-import ApprovalModal from "@/components/approval/ApprovalModal";
+import ApprovalModal, {
+  SpotifyCreateResult,
+} from "@/components/approval/ApprovalModal";
 import SEOBackground from "@/components/background/SEOBackground";
 import InfrastructureCard from "@/components/cards/InfrastructureCard";
 import PlaylistRecommendationCard from "@/components/cards/PlaylistRecommendationCard";
@@ -22,8 +24,17 @@ import GlassCard from "@/components/ui/GlassCard";
 import { createOperationPlan } from "@/lib/createOperationPlan";
 import { OperationPlan, PlaylistRecommendation } from "@/types/operation";
 
+const PENDING_SPOTIFY_PLAYLIST_KEY = "seo-pending-spotify-playlist";
+
+type PendingSpotifyPlaylist = {
+  operationId: string;
+  playlist: PlaylistRecommendation;
+};
+
 export default function OperationControl() {
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+
   const [plan, setPlan] = useState<OperationPlan | null>(null);
   const [selectedPlaylist, setSelectedPlaylist] =
     useState<PlaylistRecommendation | null>(null);
@@ -77,6 +88,49 @@ export default function OperationControl() {
     loadOperation();
   }, [params.id]);
 
+  useEffect(() => {
+    async function createPendingSpotifyPlaylistAfterLogin() {
+      const spotifyStatus = searchParams.get("spotify");
+
+      if (spotifyStatus !== "connected") {
+        return;
+      }
+
+      const pendingRaw = localStorage.getItem(PENDING_SPOTIFY_PLAYLIST_KEY);
+
+      if (!pendingRaw) {
+        return;
+      }
+
+      const pending = JSON.parse(pendingRaw) as PendingSpotifyPlaylist;
+
+      if (pending.operationId !== params.id) {
+        return;
+      }
+
+      setSelectedPlaylist(pending.playlist);
+      setIsApprovalOpen(true);
+      setIsExecuting(true);
+      setIsComplete(false);
+
+      const result = await createSpotifyPlaylist(pending.playlist);
+
+      setIsExecuting(false);
+
+      if (!result.success || !result.playlistUrl) {
+        alert(result.error || "Failed to create Spotify playlist.");
+        return;
+      }
+
+      localStorage.removeItem(PENDING_SPOTIFY_PLAYLIST_KEY);
+      setIsComplete(true);
+
+      window.location.href = result.playlistUrl;
+    }
+
+    createPendingSpotifyPlaylistAfterLogin();
+  }, [params.id, searchParams]);
+
   function handleOpenApproval() {
     if (plan?.type === "playlist" && !selectedPlaylist) {
       alert("Please select one Spotify playlist first.");
@@ -101,6 +155,59 @@ export default function OperationControl() {
       setIsComplete(true);
       setIsExecuting(false);
     }, 3200);
+  }
+
+  async function createSpotifyPlaylist(
+    playlist: PlaylistRecommendation,
+  ): Promise<SpotifyCreateResult> {
+    setIsExecuting(true);
+    setIsComplete(false);
+
+    try {
+      const response = await fetch("/api/spotify/create-playlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          playlist,
+        }),
+      });
+
+      const data = (await response.json()) as SpotifyCreateResult;
+
+      if (data.connectUrl) {
+        localStorage.setItem(
+          PENDING_SPOTIFY_PLAYLIST_KEY,
+          JSON.stringify({
+            operationId: params.id,
+            playlist,
+          }),
+        );
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Spotify playlist creation failed:", error);
+
+      return {
+        success: false,
+        error: "Unable to create Spotify playlist. Please try again.",
+      };
+    } finally {
+      setIsExecuting(false);
+    }
+  }
+
+  async function handleSpotifyExecute(): Promise<SpotifyCreateResult> {
+    if (!selectedPlaylist) {
+      return {
+        success: false,
+        error: "Please select one Spotify playlist first.",
+      };
+    }
+
+    return createSpotifyPlaylist(selectedPlaylist);
   }
 
   if (!plan) {
@@ -235,6 +342,7 @@ export default function OperationControl() {
         isComplete={isComplete}
         onClose={handleCloseApproval}
         onExecute={handleExecute}
+        onSpotifyExecute={handleSpotifyExecute}
       />
     </main>
   );

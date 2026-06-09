@@ -1,6 +1,23 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+
+function getSafeReturnTo(returnTo?: string) {
+  if (!returnTo || !returnTo.startsWith("/") || returnTo.startsWith("//")) {
+    return "/";
+  }
+
+  return returnTo;
+}
+
+function withSpotifyStatus(path: string, status: "connected" | "failed") {
+  const [pathname, query = ""] = path.split("?");
+  const params = new URLSearchParams(query);
+  params.set("spotify", status);
+
+  return `${pathname}?${params.toString()}`;
+}
 
 export async function GET(request: Request) {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
@@ -16,10 +33,19 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
+  const state = url.searchParams.get("state");
+  const cookieStore = await cookies();
+  const storedState = cookieStore.get("spotify_oauth_state")?.value;
+  const returnTo = getSafeReturnTo(cookieStore.get("spotify_return_to")?.value);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || url.origin;
 
-  if (!code) {
-    return NextResponse.redirect(`${appUrl}?spotify=failed`);
+  if (!code || !state || !storedState || state !== storedState) {
+    const response = NextResponse.redirect(
+      `${appUrl}${withSpotifyStatus(returnTo, "failed")}`,
+    );
+    response.cookies.delete("spotify_oauth_state");
+    response.cookies.delete("spotify_return_to");
+    return response;
   }
 
   const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
@@ -46,7 +72,12 @@ export async function GET(request: Request) {
       errorText,
     );
 
-    return NextResponse.redirect(`${appUrl}?spotify=failed`);
+    const response = NextResponse.redirect(
+      `${appUrl}${withSpotifyStatus(returnTo, "failed")}`,
+    );
+    response.cookies.delete("spotify_oauth_state");
+    response.cookies.delete("spotify_return_to");
+    return response;
   }
 
   const tokenData = (await tokenResponse.json()) as {
@@ -58,11 +89,13 @@ export async function GET(request: Request) {
 
   console.log("Spotify token granted scopes:", tokenData.scope);
 
-  const response = NextResponse.redirect(`${appUrl}?spotify=connected`);
+  const response = NextResponse.redirect(
+    `${appUrl}${withSpotifyStatus(returnTo, "connected")}`,
+  );
 
   response.cookies.set("spotify_access_token", tokenData.access_token, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge: tokenData.expires_in,
@@ -71,12 +104,15 @@ export async function GET(request: Request) {
   if (tokenData.refresh_token) {
     response.cookies.set("spotify_refresh_token", tokenData.refresh_token, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 30,
     });
   }
+
+  response.cookies.delete("spotify_oauth_state");
+  response.cookies.delete("spotify_return_to");
 
   return response;
 }

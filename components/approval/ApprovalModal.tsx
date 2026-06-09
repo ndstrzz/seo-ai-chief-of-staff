@@ -4,6 +4,15 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, ExternalLink, Loader2, LockKeyhole, X } from "lucide-react";
 import { OperationPlan, PlaylistRecommendation } from "@/types/operation";
 
+export type SpotifyCreateResult = {
+  success: boolean;
+  playlistUrl?: string;
+  playlistId?: string;
+  trackCount?: number;
+  connectUrl?: string;
+  error?: string;
+};
+
 type ApprovalModalProps = {
   plan: OperationPlan;
   selectedPlaylist?: PlaylistRecommendation | null;
@@ -12,6 +21,7 @@ type ApprovalModalProps = {
   isComplete: boolean;
   onClose: () => void;
   onExecute: () => void;
+  onSpotifyExecute: () => Promise<SpotifyCreateResult>;
 };
 
 export default function ApprovalModal({
@@ -22,6 +32,7 @@ export default function ApprovalModal({
   isComplete,
   onClose,
   onExecute,
+  onSpotifyExecute,
 }: ApprovalModalProps) {
   async function handleApproveAndExecute() {
     if (plan.type !== "playlist") {
@@ -29,29 +40,19 @@ export default function ApprovalModal({
       return;
     }
 
-    try {
-      const response = await fetch("/api/spotify/create-playlist", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: selectedPlaylist?.name || plan.title,
-          playlist: selectedPlaylist,
-        }),
-      });
+    const data = await onSpotifyExecute();
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        alert(data.error || "Failed to create Spotify playlist.");
-        return;
-      }
-
-      window.location.href = data.playlistUrl;
-    } catch {
-      alert("Failed to create Spotify playlist.");
+    if (data.connectUrl) {
+      window.location.href = data.connectUrl;
+      return;
     }
+
+    if (!data.success || !data.playlistUrl) {
+      alert(data.error || "Failed to create Spotify playlist.");
+      return;
+    }
+
+    window.location.href = data.playlistUrl;
   }
 
   return (
@@ -95,8 +96,8 @@ export default function ApprovalModal({
 
               <p className="mx-auto mt-4 max-w-lg text-sm leading-6 text-seo-muted">
                 SEO will only execute this action after your approval. For
-                Spotify, SEO will create the selected playlist and open it
-                directly in Spotify.
+                Spotify, SEO will ask you to sign in if needed, then create the
+                selected playlist inside your Spotify account.
               </p>
             </div>
 
@@ -139,7 +140,8 @@ export default function ApprovalModal({
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <button
                 onClick={onClose}
-                className="flex-1 rounded-full border border-seo-stone px-6 py-4 text-sm font-medium text-seo-muted transition hover:bg-seo-soft"
+                disabled={isExecuting}
+                className="flex-1 rounded-full border border-seo-stone px-6 py-4 text-sm font-medium text-seo-muted transition hover:bg-seo-soft disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Return to operation
               </button>
