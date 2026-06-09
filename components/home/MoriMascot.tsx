@@ -1,6 +1,28 @@
-export default function MoriMascot() {
+"use client";
+
+import { motion } from "framer-motion";
+
+type MoriMascotProps = {
+  mode?: "idle" | "thinking" | "complete";
+};
+
+export default function MoriMascot({ mode = "idle" }: MoriMascotProps) {
+  const label =
+    mode === "thinking"
+      ? "Mori is thinking"
+      : mode === "complete"
+        ? "Mori completed the operation"
+        : "Mori is idle";
+
   return (
-    <div className="mori-stage" aria-label="Mori thinking mascot">
+    <motion.div
+      className="mori-stage"
+      aria-label={label}
+      animate={{
+        scale: mode === "thinking" ? 1.05 : 1,
+      }}
+      transition={{ duration: 0.6 }}
+    >
       <div className="mori-ring mori-ring-one" />
       <div className="mori-ring mori-ring-two" />
 
@@ -14,10 +36,6 @@ export default function MoriMascot() {
         <div className="mori-body" />
         <div className="mori-shadow" />
       </div>
-
-      <div className="mori-dot mori-dot-one" />
-      <div className="mori-dot mori-dot-two" />
-      <div className="mori-dot mori-dot-three" />
-    </div>
+    </motion.div>
   );
 }

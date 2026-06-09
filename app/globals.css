@@ -8,14 +8,11 @@
   --color-seo-moss: #5b7053;
   --color-seo-forest: #30432d;
   --color-seo-stone: #d9d5c9;
+  --color-seo-soft: #ebe6da;
 }
 
 * {
   box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
 }
 
 body {
@@ -31,22 +28,22 @@ input {
 
 .seo-noise {
   pointer-events: none;
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 2;
-  opacity: 0.2;
+  opacity: 0.18;
   background-image:
     radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.55), transparent 22%),
     radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.35), transparent 18%),
-    linear-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px);
   background-size: 100% 100%, 100% 100%, 7px 7px;
 }
 
 .seo-orb {
-  position: absolute;
+  position: fixed;
   z-index: 1;
   border-radius: 999px;
-  filter: blur(26px);
+  filter: blur(28px);
   opacity: 0.72;
   background: radial-gradient(
     circle,
@@ -92,7 +89,6 @@ input {
 
 .mori-stage {
   position: relative;
-  margin: 3.2rem 0 2.4rem;
   width: 290px;
   height: 290px;
   perspective: 900px;
@@ -203,37 +199,6 @@ input {
   animation: moriShadow 3.8s ease-in-out infinite;
 }
 
-.mori-dot {
-  position: absolute;
-  border-radius: 999px;
-  background: #30432d;
-  box-shadow: 0 12px 30px rgba(48, 67, 45, 0.28);
-  animation: moriDot 2.25s ease-in-out infinite;
-}
-
-.mori-dot-one {
-  right: 52px;
-  top: 44px;
-  width: 11px;
-  height: 11px;
-}
-
-.mori-dot-two {
-  right: 31px;
-  top: 23px;
-  width: 8px;
-  height: 8px;
-  animation-delay: 0.25s;
-}
-
-.mori-dot-three {
-  right: 15px;
-  top: 6px;
-  width: 5px;
-  height: 5px;
-  animation-delay: 0.5s;
-}
-
 @keyframes moriThink {
   0%,
   100% {
@@ -280,18 +245,5 @@ input {
   50% {
     opacity: 0.13;
     transform: translateX(-50%) scale(0.82);
-  }
-}
-
-@keyframes moriDot {
-  0%,
-  100% {
-    opacity: 0.45;
-    transform: translateY(0);
-  }
-
-  50% {
-    opacity: 1;
-    transform: translateY(-9px);
   }
 }
