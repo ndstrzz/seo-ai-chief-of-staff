@@ -3,10 +3,22 @@ export const dynamic = "force-dynamic";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+type SpotifyUser = {
+  id: string;
+};
+
 type SpotifyPlaylist = {
   id: string;
   external_urls: {
     spotify: string;
+  };
+};
+
+type SpotifySearchResponse = {
+  tracks?: {
+    items?: Array<{
+      uri?: string;
+    }>;
   };
 };
 
@@ -27,6 +39,7 @@ async function spotifyFetch<T>(
 ): Promise<T> {
   const response = await fetch(url, {
     ...options,
+    cache: "no-store",
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
@@ -77,9 +90,24 @@ export async function POST(request: Request) {
       title?: string;
     };
 
+    const user = await spotifyFetch<SpotifyUser>(
+      "Get Spotify user",
+      "https://api.spotify.com/v1/me",
+      accessToken,
+      {
+        method: "GET",
+      },
+    );
+
+    if (!user.id) {
+      throw new Error("Spotify user ID was not found.");
+    }
+
     const playlist = await spotifyFetch<SpotifyPlaylist>(
       "Create Spotify playlist",
-      "https://api.spotify.com/v1/me/playlists",
+      `https://api.spotify.com/v1/users/${encodeURIComponent(
+        user.id,
+      )}/playlists`,
       accessToken,
       {
         method: "POST",
@@ -87,7 +115,8 @@ export async function POST(request: Request) {
           name: body.title || "SEO — Corporate Seminar Playlist",
           description:
             "Created by SEO, your AI Chief of Staff. Warm, professional, low-distraction seminar playlist.",
-          public: true,
+          public: false,
+          collaborative: false,
         }),
       },
     );
@@ -95,20 +124,19 @@ export async function POST(request: Request) {
     const trackUris: string[] = [];
 
     for (const query of seedQueries) {
-      const search = await spotifyFetch<{
-        tracks?: {
-          items?: Array<{
-            uri: string;
-          }>;
-        };
-      }>(
+      const searchParams = new URLSearchParams({
+        q: query,
+        type: "track",
+        limit: "3",
+      });
+
+      const search = await spotifyFetch<SpotifySearchResponse>(
         `Search tracks: ${query}`,
-        `https://api.spotify.com/v1/search?${new URLSearchParams({
-          q: query,
-          type: "track",
-          limit: "3",
-        }).toString()}`,
+        `https://api.spotify.com/v1/search?${searchParams.toString()}`,
         accessToken,
+        {
+          method: "GET",
+        },
       );
 
       for (const item of search.tracks?.items ?? []) {
@@ -118,15 +146,20 @@ export async function POST(request: Request) {
       }
     }
 
-    if (trackUris.length > 0) {
+    const finalTrackUris = trackUris.slice(0, 18);
+
+    if (finalTrackUris.length > 0) {
       await spotifyFetch(
         "Add tracks to playlist",
-        `https://api.spotify.com/v1/playlists/${playlist.id}/tracks`,
+        `https://api.spotify.com/v1/playlists/${encodeURIComponent(
+          playlist.id,
+        )}/tracks`,
         accessToken,
         {
           method: "POST",
           body: JSON.stringify({
-            uris: trackUris.slice(0, 18),
+            uris: finalTrackUris,
+            position: 0,
           }),
         },
       );
@@ -135,19 +168,25 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       playlistUrl: playlist.external_urls.spotify,
-      trackCount: trackUris.slice(0, 18).length,
+      playlistId: playlist.id,
+      trackCount: finalTrackUris.length,
     });
   } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to create Spotify playlist.";
+
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to create Spotify playlist.",
+        error: message,
+        hint:
+          message.includes("403")
+            ? "Reconnect Spotify after adding playlist-modify-private and playlist-modify-public scopes."
+            : undefined,
       },
       { status: 500 },
     );
   }
 }
-//
