@@ -1,9 +1,11 @@
 export const dynamic = "force-dynamic";
+
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 type SpotifyUser = {
   id: string;
+  display_name?: string;
 };
 
 type SpotifyPlaylist = {
@@ -15,16 +17,15 @@ type SpotifyPlaylist = {
 
 const seedQueries = [
   "lofi jazz instrumental",
-  "acoustic coffeehouse",
+  "acoustic coffeehouse instrumental",
   "soft piano instrumental",
   "corporate lounge jazz",
   "chillhop instrumental",
   "ambient piano",
-  "bossa nova instrumental",
-  "soft acoustic instrumental",
 ];
 
 async function spotifyFetch<T>(
+  label: string,
   url: string,
   accessToken: string,
   options: RequestInit = {},
@@ -42,7 +43,7 @@ async function spotifyFetch<T>(
 
   if (!response.ok) {
     throw new Error(
-      `Spotify request failed: ${response.status} ${text || response.statusText}`,
+      `${label} failed: ${response.status} ${text || response.statusText}`,
     );
   }
 
@@ -54,14 +55,11 @@ async function spotifyFetch<T>(
 }
 
 export async function GET() {
-  return NextResponse.json(
-    {
-      ok: true,
-      message:
-        "Spotify create-playlist route is alive. Use POST to create a playlist.",
-    },
-    { status: 200 },
-  );
+  return NextResponse.json({
+    ok: true,
+    message:
+      "Spotify create-playlist route is alive. Use POST to create a playlist.",
+  });
 }
 
 export async function POST(request: Request) {
@@ -85,20 +83,22 @@ export async function POST(request: Request) {
     };
 
     const user = await spotifyFetch<SpotifyUser>(
+      "Get Spotify profile",
       "https://api.spotify.com/v1/me",
       accessToken,
     );
 
     const playlist = await spotifyFetch<SpotifyPlaylist>(
+      "Create Spotify playlist",
       `https://api.spotify.com/v1/users/${user.id}/playlists`,
       accessToken,
       {
         method: "POST",
         body: JSON.stringify({
-          name: body.title || "SEO — Corporate LPA Seminar Playlist",
+          name: body.title || "SEO — Corporate Seminar Playlist",
           description:
             "Created by SEO, your AI Chief of Staff. Warm, professional, low-distraction seminar playlist.",
-          public: false,
+          public: true,
         }),
       },
     );
@@ -113,6 +113,7 @@ export async function POST(request: Request) {
           }>;
         };
       }>(
+        `Search tracks: ${query}`,
         `https://api.spotify.com/v1/search?${new URLSearchParams({
           q: query,
           type: "track",
@@ -130,12 +131,13 @@ export async function POST(request: Request) {
 
     if (trackUris.length > 0) {
       await spotifyFetch(
+        "Add tracks to playlist",
         `https://api.spotify.com/v1/playlists/${playlist.id}/tracks`,
         accessToken,
         {
           method: "POST",
           body: JSON.stringify({
-            uris: trackUris.slice(0, 24),
+            uris: trackUris.slice(0, 18),
           }),
         },
       );
@@ -144,11 +146,10 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       playlistUrl: playlist.external_urls.spotify,
-      trackCount: trackUris.slice(0, 24).length,
+      trackCount: trackUris.slice(0, 18).length,
+      owner: user.display_name || user.id,
     });
   } catch (error) {
-    console.error("Spotify playlist creation failed:", error);
-
     return NextResponse.json(
       {
         success: false,
